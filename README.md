@@ -1,126 +1,74 @@
-# Automated Data Pipeline for Grant Data Integration
+# Grant Data Integration Pipeline (Databricks)
 
-**Description:**
+> Automated, quality-gated integration of public grant data into a governed data platform · **~2023** · Databricks pipeline
 
-This project involves the development of an automated data pipeline to integrate grant data from a public source into a data platform. The pipeline incorporates data extraction, transformation, validation, and loading processes to ensure data quality and enhance the information available within the platform. This project showcases the implementation of robust data engineering practices to improve data accuracy and team efficiency.
+**Role:** Data & AI Platform Architect (Lead Data Engineer)
+**Type:** Portfolio case study — architecture & approach are representative; production code is proprietary.
 
-**Project Overview:**
+---
 
-This project streamlines the extraction, processing, and integration of grant data. The key components are:
+## Context
 
-1.  **Automated Data Extraction:**
-    * Automates the extraction of data from a public website using web automation techniques.
-    * Handles form submissions and website changes to ensure reliable data extraction.
-2.  **Data Storage & Transfer:**
-    * Stores the extracted data in a temporary storage location.
-    * Automates the transfer of data to a cloud-based storage system.
-3.  **Cloud-Based Storage:**
-    * Utilizes cloud storage for scalable and reliable storage of raw data.
-4.  **Cloud-Based Data Processing:**
-    * Processes data in a cloud-based distributed computing environment.
-    * Performs data cleaning, transformation, and matching.
-    * Enriches data with information from an existing data source.
-5.  **Database Integration:**
-    * Loads the processed data into a database.
-    * Maintains data integrity and updates information.
-6.  **Data Validation:**
-    * Implements data validation to identify and rectify discrepancies.
-    * Defines expectations, runs checks, and generates quality reports.
-7.  **Data Profiling:**
-    * Profiles data to identify issues like missing values and inconsistencies.
-8.  **Standardized Data Ingestion Template:**
-    * Streamlines ingestion processes for consistency and efficiency.
-9.  **Data Lineage Tracking:**
-    * Tracks data transformations for integrity and traceability.
-10. **Data Visualization:**
-    * Visualizes integrated data for analysis.
+A public source published grant data that needed to flow — reliably and accurately — into an existing data platform to enrich it. Manual extraction was brittle (the website changed, forms broke) and there were no systematic data-quality guarantees, so trust in the integrated data was low.
+
+This project (**circa 2023**) built an end-to-end automated pipeline on **Databricks** with **data quality as a first-class concern**: web automation for extraction, cloud storage for staging, **PySpark/Delta** transformation and matching, and **Great Expectations** validation gates with profiling. It is the **production-pipeline** stage of my journey — where reliability, validation, lineage and reusability mattered as much as the transform itself.
 
 ## Architecture
 
-Public Website (Web Automation) --> Temporary Storage --> Cloud Storage --> Cloud-Based Processing --> Database --> Data Visualization
+```mermaid
+flowchart LR
+  WEB[Public website] --> AUTO[Web automation<br/>Selenium]
+  AUTO --> TMP[(Temp storage)]
+  TMP --> CLOUD[(Cloud storage<br/>raw zone)]
+  CLOUD --> BRZ
+  subgraph Databricks
+    direction LR
+    BRZ[(Bronze<br/>Delta)] --> SLV[(Silver<br/>clean · match · enrich)]
+    SLV --> GE{Great Expectations<br/>quality gate}
+    GE -->|pass| GLD[(Gold<br/>Delta)]
+    GE -->|fail| QUAR[(Quarantine +<br/>quality report)]
+  end
+  GLD --> DB[(Target database)]
+  PROF[Pandas profiling] -. profiles .-> SLV
+```
 
-## Technologies
+## Tech stack
 
-* **Automation & Web Scraping:**
-    * Web Automation Library (e.g., Selenium)
-    * Automation Tool (e.g., Power Automate or similar)
+- **Platform:** Databricks (Apache Spark)
+- **Processing:** PySpark, Delta Lake
+- **Extraction:** Selenium web automation; Python (Requests, Beautiful Soup), boto3, Pandas; fuzzy matching
+- **Data quality:** Great Expectations (expectations + validation reports), data profiling
+- **Orchestration:** Databricks Workflows (schedulable, reusable ingestion template)
+- **Cloud storage:** S3 / Azure Blob (raw staging)
 
-* **Python:**
-    * Libraries for web scraping (e.g., Beautiful Soup, Requests)
-    * Libraries for cloud storage interaction (e.g., boto3 for AWS)
-    * Libraries for data manipulation (e.g., Pandas)
-    * Libraries for fuzzy matching
+## Data model & architecture
 
-* **Cloud Computing:**
-    * Cloud Platform (e.g., AWS, Azure, GCP)
-    * Cloud Storage Service (e.g., AWS S3, Azure Blob Storage, Google Cloud Storage)
-    * Cloud-Based Distributed Computing (e.g., AWS Databricks, Azure Synapse, Google Cloud Dataproc)
+- **Medallion with a quality gate** — Bronze (raw) → Silver (cleaned, fuzzy-matched, enriched against the existing source) → **validation** → Gold (publish-ready Delta).
+- **Quarantine path** — records failing expectations are diverted with a quality report rather than silently dropped or polluting Gold.
+- **Reusable ingestion template** — a parameterized pattern so future sources onboard consistently instead of as one-off scripts.
+- **Lineage** tracked through the layers for integrity and traceability.
 
-* **Distributed Processing:**
-    * Distributed Processing Framework (e.g., PySpark)
+## Key design decisions
 
-* **Database:**
-    * Database System (e.g., PostgreSQL, MySQL, Cloud-based databases)
+- **Validate before you publish** — Great Expectations gates between Silver and Gold mean only data meeting defined expectations reaches consumers.
+- **Quarantine, don't discard** — failed records are captured and reported so issues are visible and fixable, not lost.
+- **Template the pipeline** — a standardized, parameterized ingestion pattern turns each new source into configuration, not new code.
+- **Automate the brittle edge** — resilient web automation with error handling absorbs upstream form/website changes that used to break extraction.
 
-* **Visualization:**
-    * Data Visualization Tool (e.g., Power BI, Tableau, Looker)
+## Outcome & impact
 
-* **Orchestration:**
-    * Workflow Orchestration Tool (e.g., Apache Airflow, Prefect, Dagster)
+- **Trustworthy integration** — quality gates and profiling raised confidence in the enriched data.
+- **Hands-off operation** — automated extraction-to-load removed manual, error-prone steps and improved team efficiency.
+- **Faster onboarding of new sources** through the reusable ingestion template.
+- **Auditable lineage** end to end, supporting governance and debugging.
 
-* **Validation:**
-    * Data Validation Library (e.g., Great Expectations)
+## Where this sits in my journey
 
-* **Profiling:**
-    * Data Profiling Library (e.g., Pandas Profiling)
+Part of my **Data & AI Platform Architect** portfolio — the **~2023 Databricks production-pipeline** stage.
 
-* **Containerization:**
-    * Containerization Platform (e.g., Docker)
+⏮ prev: [customs-trade-analytics-databricks-pyspark](https://github.com/kamalakarpeta/customs-trade-analytics-databricks-pyspark) · ⏭ next: [financial-research-rag-databricks-genai](https://github.com/kamalakarpeta/financial-research-rag-databricks-genai)
+Full journey: https://kamalakarpeta.github.io
 
-* **Version Control:**
-    * Git
+## Contact
 
-## Setup and Installation
-
-1.  **Cloud Platform Setup:**
-    * Set up a cloud platform account and configure necessary services.
-    * Configure IAM roles/permissions for access.
-2.  **Data Storage Setup:**
-    * Configure storage services for temporary and cloud-based storage.
-3.  **Database Setup:**
-    * Ensure access to the database system.
-4.  **Python Dependencies:**
-    * Install necessary Python libraries using `pip install` (list specific libraries used).
-5.  **Distributed Computing Setup:**
-    * Set up and configure the distributed computing environment.
-6.  **Web Automation Setup:**
-    * Install and configure the web automation library and any related tools.
-7.  **Workflow Orchestration Setup:**
-    * Install and configure the workflow orchestration tool.
-8.  **Containerization Setup:**
-    * Install and configure the containerization platform.
-
-## Usage
-
-1.  Configure necessary credentials and environment variables.
-2.  Run the web automation script to extract data.
-3.  Ensure the automation tool is active and transferring data to the temporary storage.
-4.  Verify data transfer to the cloud storage.
-5.  Process data using the distributed computing environment.
-6.  Load the processed data into the database.
-7.  Visualize the integrated data using the chosen visualization tool.
-8.  Schedule the processes using the workflow orchestration tool.
-9.  Run data validation checks.
-10. Run data profiling to analyze data quality.
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit pull requests or open issues to suggest improvements or report bugs.
-
-## License
-
-This project is licensed under the [MIT License](LICENSE).
-
-**Contact:**
-
-* LinkedIn: [URL](https://www.linkedin.com/in/kamalakarpeta/)
+LinkedIn: https://www.linkedin.com/in/kamalakarpeta/
