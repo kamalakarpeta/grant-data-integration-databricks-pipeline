@@ -1,8 +1,8 @@
 # Grant Data Integration Pipeline (Databricks)
 
-> Automated, quality-gated integration of public grant data into a governed data platform · **~2023** · Databricks pipeline
+> Automated, quality-gated integration of public grant data into a governed data platform · **2023** · Databricks pipeline
 
-**Role:** Data & AI Platform Architect (Lead Data Engineer)
+**Role at the time:** Data Architect · *(2023)*
 **Type:** Portfolio case study — architecture & approach are representative; production code is proprietary.
 
 ---
@@ -64,7 +64,7 @@ flowchart LR
 
 ## Where this sits in my journey
 
-Part of my **Data & AI Platform Architect** portfolio — the **~2023 Databricks production-pipeline** stage.
+Part of my journey toward **Data & AI Platform Architect** — the **2023 Databricks production-pipeline** stage, as a **Data Architect**.
 
 ⏮ prev: [customs-trade-analytics-databricks-pyspark](https://github.com/kamalakarpeta/customs-trade-analytics-databricks-pyspark) · ⏭ next: [financial-research-rag-databricks-genai](https://github.com/kamalakarpeta/financial-research-rag-databricks-genai)
 Full journey: https://kamalakarpeta.github.io
